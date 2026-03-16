@@ -14,7 +14,7 @@ struct boardView: View {
     
     var body: some View {
        
- 
+        
         GeometryReader { geometry in
             
             let squareSize = min(geometry.size.width, geometry.size.height) / 8
@@ -31,7 +31,7 @@ struct boardView: View {
                             ZStack{
                                Rectangle()
                                 
-                                    .fill((row + col).isMultiple(of: 2) ? Color.white :  Color.gray)
+                                    .fill((row + col).isMultiple(of: 2) ? Color.white :  Color.teal)
                                     .frame(width: squareSize, height: squareSize)
                              
                                     
