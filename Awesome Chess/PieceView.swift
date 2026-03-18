@@ -15,8 +15,8 @@ struct PieceView: View {
     @ObservedObject var board:boardLogic
     //var boardLayout=boardView()
     @State var selectedPieceId: UUID?
-    
-    
+    @State private var whiteShakeAmount: CGFloat = 0
+    @State private var blackShakeAmount: CGFloat = 0
     
     var body: some View {
         
@@ -95,7 +95,12 @@ struct PieceView: View {
                                 
                                 
                                 
-                                
+                                // legal move highlight
+                                  if board.legalMoves.contains(where: { $0.row == row && $0.col == col }) {
+                                      Rectangle()
+                                          .fill(Color.green.opacity(0.4))
+                                          .frame(width: squareSize, height: squareSize)
+                                  }
                                 
                                 ForEach(board.pieces){
                                     Piece in
@@ -105,17 +110,27 @@ struct PieceView: View {
                                             .resizable()
                                             .scaledToFit()
                                             .frame(width: squareSize * 0.8, height: squareSize * 0.8)
-                                            .overlay(
-                                                    Rectangle()
-                                                        .fill(Color.yellow.opacity(selectedPieceId == Piece.id ? 0.4 : 0))
-                                                )
+                                            .modifier(ShakeEffect(animatableData: Piece.pieceType == .king ? (Piece.pieceColor == .white ? whiteShakeAmount : blackShakeAmount) : 0))
+                                            .onChange(of: board.isKingInCheck) { newValue in
+                                                if Piece.pieceType == .king && Piece.pieceColor == board.turnColor {
+                                                    if newValue {
+                                                        withAnimation(.easeInOut(duration: 0.1).repeatForever(autoreverses: true)) {
+                                                            if Piece.pieceColor == .white {
+                                                                whiteShakeAmount = 1
+                                                            } else {
+                                                                blackShakeAmount = 1
+                                                            }
+                                                        }
+                                                    } else {
+                                                        withAnimation(.default) {
+                                                            whiteShakeAmount = 0
+                                                            blackShakeAmount = 0
+                                                        }
+                                                    }
+                                                }
+                                            }
                                             .onDrag {
-                                                
                                                 NSItemProvider(object: Piece.id.uuidString as NSString)
-                                                
-                                                
-                                                
-                                                
                                             }
                                         
                                         
@@ -137,14 +152,18 @@ struct PieceView: View {
                                 if let id = selectedPieceId {
                                     if let piece = board.pieceAt(row: row, col: col), piece.id == id {
                                         selectedPieceId = nil
+                                        board.legalMoves = []
                                     } else {
                                         board.movePiece(piece_lookup: id, row: row, col: col)
                                         selectedPieceId = nil
+                                        board.legalMoves = []
                                     }
                                 } else if let piece = board.pieceAt(row: row, col: col) {
                                     selectedPieceId = piece.id
+                                    board.getLegalMoves(for: piece)
                                 }
                             }
+                            
                         }
                     }
                     
@@ -170,7 +189,14 @@ struct PieceView: View {
     
     
     
-    
+    struct ShakeEffect: GeometryEffect {
+        var animatableData: CGFloat
+        
+        func effectValue(size: CGSize) -> ProjectionTransform {
+            let offset = sin(animatableData * .pi * 4) * 5
+            return ProjectionTransform(CGAffineTransform(translationX: offset, y: 0))
+        }
+    }
     
 }
 #Preview {

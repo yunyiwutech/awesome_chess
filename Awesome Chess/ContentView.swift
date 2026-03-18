@@ -3,7 +3,7 @@ import SwiftUI
 struct ContentView: View {
 
     @StateObject var board = boardLogic()
-
+  
     var body: some View {
 
         VStack(spacing: 20) {
@@ -32,6 +32,31 @@ struct ContentView: View {
             ZStack {
                 boardView(board: board)
                 PieceView(board: board)
+            }
+            .sheet(isPresented: $board.pawnPromotion) {
+                VStack {
+                    Text("Choose promotion piece")
+                        .font(.headline)
+                        .padding()
+                       
+                    
+                    HStack {
+                        ForEach([PieceType.queen, .rook, .bishop, .knight], id: \.self) { pieceType in
+                            Button(pieceType.rawValue) {
+                                if let id = board.promotionID {
+                                    if let index = board.pieces.firstIndex(where: { $0.id == id }) {
+                                        board.pieces[index].pieceType = pieceType
+                                    }
+                                }
+                                board.pawnPromotion = false
+                            }
+                            .padding()
+                            .background(Color.gray.opacity(0.2))
+                            .cornerRadius(10)
+                        }
+                    }
+                }
+                .padding()
             }
 
             // Bottom info

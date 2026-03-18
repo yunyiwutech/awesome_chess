@@ -11,7 +11,7 @@ import SwiftUI
 struct Awesome_ChessApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            SplashScreen()
         }
     }
 }
